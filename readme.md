@@ -10,7 +10,7 @@ The app stores votes and builds a live leaderboard of community favorites.
 ## Highlights
 
 - Random Wikipedia discovery with quality filtering
-- Mandatory reading lock (`60s`) before voting
+- Mandatory reading lock (`30s`) before voting
 - Swipe gestures + tap buttons
 - Persistent ranking (`score = likes - dislikes`)
 - Multi-language UI and article translation:
