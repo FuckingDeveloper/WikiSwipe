@@ -24,6 +24,7 @@ export interface UICopy {
   mobileTimerToggleAria: string;
   timerAria: string;
   readingLock: string;
+  timerPending: string;
   unlocksAfter: (seconds: number) => string;
   voteNo: string;
   voteYes: string;
@@ -76,6 +77,7 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     mobileTimerToggleAria: "Show or hide timer details",
     timerAria: "Reading timer progress",
     readingLock: "Reading Lock",
+    timerPending: "Timer appears after article loads",
     unlocksAfter: (seconds) => `Unlocks after ${seconds}s`,
     voteNo: "No",
     voteYes: "Yes",
@@ -126,6 +128,7 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     mobileTimerToggleAria: "Показать или скрыть детали таймера",
     timerAria: "Прогресс таймера чтения",
     readingLock: "Таймер чтения",
+    timerPending: "Таймер появится после загрузки статьи",
     unlocksAfter: (seconds) => `Разблокируется через ${seconds}с`,
     voteNo: "Нет",
     voteYes: "Да",
@@ -176,6 +179,7 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     mobileTimerToggleAria: "Timer-Details ein- oder ausblenden",
     timerAria: "Fortschritt des Lesetimers",
     readingLock: "Lese-Sperre",
+    timerPending: "Timer erscheint nach dem Laden des Artikels",
     unlocksAfter: (seconds) => `Freigabe nach ${seconds}s`,
     voteNo: "Nein",
     voteYes: "Ja",
@@ -226,6 +230,7 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     mobileTimerToggleAria: "Afficher ou masquer les détails du minuteur",
     timerAria: "Progression du minuteur de lecture",
     readingLock: "Verrou de lecture",
+    timerPending: "Le minuteur apparaît après le chargement de l'article",
     unlocksAfter: (seconds) => `Déverrouillage après ${seconds}s`,
     voteNo: "Non",
     voteYes: "Oui",
@@ -276,6 +281,7 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     mobileTimerToggleAria: "显示或隐藏计时详情",
     timerAria: "阅读计时进度",
     readingLock: "阅读锁定",
+    timerPending: "词条加载后显示计时器",
     unlocksAfter: (seconds) => `${seconds}秒后解锁`,
     voteNo: "否",
     voteYes: "是",
@@ -326,6 +332,7 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     mobileTimerToggleAria: "Mostrar u ocultar detalles del temporizador",
     timerAria: "Progreso del temporizador de lectura",
     readingLock: "Bloqueo de lectura",
+    timerPending: "El temporizador aparece después de cargar el artículo",
     unlocksAfter: (seconds) => `Se desbloquea después de ${seconds}s`,
     voteNo: "No",
     voteYes: "Sí",

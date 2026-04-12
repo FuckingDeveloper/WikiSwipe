@@ -1,4 +1,10 @@
 import { isSupportedLanguage } from "@/lib/i18n";
+import {
+  deserializeSessionState,
+  getSessionCookieName,
+  serializeSessionState,
+  SessionState
+} from "@/lib/session-state";
 import { fetchRandomWikipediaArticle } from "@/lib/wikipedia";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -11,6 +17,15 @@ function parseExcludedIds(param: string | null): number[] {
     .split(",")
     .map((value) => Number.parseInt(value.trim(), 10))
     .filter((value) => Number.isFinite(value));
+}
+
+function cookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+    path: "/"
+  };
 }
 
 export async function GET(request: NextRequest) {
@@ -29,7 +44,35 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(article);
+    const response = NextResponse.json(article);
+
+    const currentState = deserializeSessionState(
+      request.cookies.get(getSessionCookieName())?.value
+    );
+
+    const nextState: SessionState =
+      currentState && currentState.pageId === article.pageId
+        ? {
+            ...currentState,
+            articleLanguage: language,
+            requiredReadingMs: article.readingLockSeconds * 1000,
+            lastHeartbeatAt: null
+          }
+        : {
+            pageId: article.pageId,
+            articleLanguage: language,
+            readingElapsedMs: 0,
+            requiredReadingMs: article.readingLockSeconds * 1000,
+            lastHeartbeatAt: null
+          };
+
+    response.cookies.set(
+      getSessionCookieName(),
+      serializeSessionState(nextState),
+      cookieOptions()
+    );
+
+    return response;
   } catch (error) {
     console.error("/api/article/random failed", error);
     return NextResponse.json({ error: "Failed to fetch article." }, { status: 500 });

@@ -1,11 +1,12 @@
 "use client";
 
 interface TimerProgressProps {
-  secondsLeft: number;
-  totalSeconds: number;
+  secondsLeft: number | null;
+  totalSeconds: number | null;
   progress: number;
   ariaLabel: string;
   readingLockLabel: string;
+  pendingText: string;
   unlocksAfterText: string;
 }
 
@@ -15,11 +16,14 @@ export function TimerProgress({
   progress,
   ariaLabel,
   readingLockLabel,
+  pendingText,
   unlocksAfterText
 }: TimerProgressProps) {
+  const isPending = secondsLeft === null || totalSeconds === null;
   const radius = 26;
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference * (1 - progress);
+  const safeProgress = isPending ? 0 : progress;
+  const strokeDashoffset = circumference * (1 - safeProgress);
 
   return (
     <div className="flex items-center gap-3 rounded-full border border-white/15 bg-white/5 px-3 py-2 backdrop-blur-sm">
@@ -47,8 +51,12 @@ export function TimerProgress({
 
       <div>
         <p className="text-xs uppercase tracking-[0.2em] text-muted">{readingLockLabel}</p>
-        <p className="font-serif text-lg leading-none text-ink">{secondsLeft}s</p>
-        <p className="text-[11px] text-muted">{unlocksAfterText || `Unlocks after ${totalSeconds}s`}</p>
+        <p className="font-serif text-lg leading-none text-ink">
+          {isPending ? "—" : `${secondsLeft}s`}
+        </p>
+        <p className="text-[11px] text-muted">
+          {isPending ? pendingText : unlocksAfterText || `Unlocks after ${totalSeconds}s`}
+        </p>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ export interface NormalizedArticle {
   summary: string;
   imageUrl: string | null;
   wikipediaUrl: string;
+  readingLockSeconds: number;
   contentLanguage: AppLanguage;
   isMachineTranslated: boolean;
 }

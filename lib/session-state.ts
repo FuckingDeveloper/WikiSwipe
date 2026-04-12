@@ -16,6 +16,7 @@ type SessionState = {
   pageId: number;
   articleLanguage: AppLanguage;
   readingElapsedMs: number;
+  requiredReadingMs: number;
   lastHeartbeatAt: number | null;
 };
 
@@ -75,6 +76,7 @@ function isValidState(value: unknown): value is SessionState {
     Number.isFinite(candidate.pageId) &&
       isSupportedLanguage(candidate.articleLanguage) &&
       Number.isFinite(candidate.readingElapsedMs) &&
+      Number.isFinite(candidate.requiredReadingMs) &&
       (candidate.lastHeartbeatAt === null || Number.isFinite(candidate.lastHeartbeatAt))
   );
 }
@@ -112,6 +114,7 @@ export function settleSessionState(
     pageId: state.pageId,
     articleLanguage: state.articleLanguage,
     readingElapsedMs,
+    requiredReadingMs: Math.max(1000, Math.floor(state.requiredReadingMs)),
     lastHeartbeatAt: keepHeartbeat ? now : null
   };
 }
@@ -134,6 +137,7 @@ export function deserializeSessionState(cookieValue: string | undefined): Sessio
       pageId: parsed.pageId,
       articleLanguage: parsed.articleLanguage,
       readingElapsedMs: Math.max(0, Math.floor(parsed.readingElapsedMs)),
+      requiredReadingMs: Math.max(1000, Math.floor(parsed.requiredReadingMs)),
       lastHeartbeatAt: parsed.lastHeartbeatAt === null ? null : Math.floor(parsed.lastHeartbeatAt)
     };
   } catch {

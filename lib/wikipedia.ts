@@ -1,4 +1,5 @@
 import { AppLanguage } from "@/lib/i18n";
+import { estimateReadingLockSeconds } from "@/lib/reading-lock";
 import { NormalizedArticle } from "@/lib/types";
 
 const MIN_SUMMARY_LENGTH = 280;
@@ -66,12 +67,15 @@ function hasUsefulContent(page: WikiPageResponse): boolean {
 }
 
 function normalizeArticle(page: WikiPageResponse): NormalizedArticle {
+  const summary = cleanSummary(page.extract ?? "");
+
   return {
     pageId: page.pageid,
     title: page.title,
-    summary: cleanSummary(page.extract ?? ""),
+    summary,
     imageUrl: page.original?.source ?? page.thumbnail?.source ?? null,
     wikipediaUrl: page.fullurl ?? `https://en.wikipedia.org/?curid=${page.pageid}`,
+    readingLockSeconds: estimateReadingLockSeconds(summary),
     contentLanguage: "en",
     isMachineTranslated: false
   };
@@ -208,6 +212,7 @@ async function localizeArticle(
       baseArticle.imageUrl,
     wikipediaUrl:
       localizedPage.fullurl ?? baseArticle.wikipediaUrl,
+    readingLockSeconds: baseArticle.readingLockSeconds,
     contentLanguage: language,
     isMachineTranslated: false
   };
@@ -268,6 +273,7 @@ async function machineTranslateArticle(
     ...baseArticle,
     title: translatedTitle ?? baseArticle.title,
     summary: translatedSummary,
+    readingLockSeconds: baseArticle.readingLockSeconds,
     contentLanguage: language,
     isMachineTranslated: true
   };

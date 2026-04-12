@@ -14,8 +14,9 @@ interface MobileBottomNavProps {
     timerToggleAria?: string;
   };
   timer?: {
-    secondsLeft: number;
-    totalSeconds: number;
+    secondsLeft: number | null;
+    totalSeconds: number | null;
+    disabled?: boolean;
   };
   timerExpanded?: boolean;
   onTimerToggle?: () => void;
@@ -54,8 +55,12 @@ export function MobileBottomNav({
   const leaderboardActive = pathname === "/leaderboard";
 
   const progress = timer
-    ? Math.min(1, Math.max(0, (timer.totalSeconds - timer.secondsLeft) / timer.totalSeconds))
+    ? timer.secondsLeft === null || timer.totalSeconds === null
+      ? 0
+      : Math.min(1, Math.max(0, (timer.totalSeconds - timer.secondsLeft) / timer.totalSeconds))
     : 0;
+
+  const timerDisabled = Boolean(timer?.disabled);
 
   return (
     <motion.nav
@@ -86,18 +91,19 @@ export function MobileBottomNav({
             onClick={onTimerToggle}
             aria-label={labels.timerToggleAria ?? "Toggle timer info"}
             aria-expanded={timerExpanded}
+            disabled={timerDisabled}
             className={`flex h-12 items-center justify-center rounded-xl border text-ink transition ${
-              timerExpanded
+              timerExpanded && !timerDisabled
                 ? "border-brand/40 bg-brand/15"
                 : "border-white/15 bg-white/5 hover:bg-white/10"
-            }`}
+            } ${timerDisabled ? "cursor-not-allowed opacity-75 hover:bg-white/5" : ""}`}
           >
             <div
               className="relative flex h-8 w-8 items-center justify-center rounded-full"
               style={{ background: `conic-gradient(#49c6ff ${progress * 360}deg, rgba(255,255,255,0.14) 0deg)` }}
             >
               <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0b162a] text-[10px] font-semibold text-ink">
-                {timer.secondsLeft}
+                {timer.secondsLeft ?? "—"}
               </div>
             </div>
           </button>
