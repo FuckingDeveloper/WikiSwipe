@@ -1,7 +1,7 @@
 # WikiSwipe
 
 **WikiSwipe** is a Tinder-style discovery app for Wikipedia.  
-You get a random article, read it for **30 seconds**, then vote:
+You get a random article, read it for a **dynamic timer** (based on text length), then vote:
 - left / No
 - right / Yes
 
@@ -10,7 +10,7 @@ The app stores votes and builds a live leaderboard of community favorites.
 ## Highlights
 
 - Random Wikipedia discovery with quality filtering
-- Mandatory reading lock (`30s`) before voting
+- Mandatory dynamic reading lock before voting
 - Swipe gestures + tap buttons
 - Persistent ranking (`score = likes - dislikes`)
 - Multi-language UI and article translation:
@@ -24,6 +24,21 @@ The app stores votes and builds a live leaderboard of community favorites.
 - Encrypted server-side session state (tamper-resistant article/timer lock)
 - **PWA support** (installable app + service worker)
 - Mobile-first layout with bottom navigation bar
+
+## Dynamic Reading Timer
+
+WikiSwipe calculates reading lock per article summary:
+
+- Average reading speed baseline: **240 words/min**
+- Formula: `ceil(words / 240 * 60)`
+- Bounds: **15s minimum**, **120s maximum**
+
+This timer is enforced both:
+
+- in UI (countdown lock),
+- and on backend (vote endpoint validation),
+
+so voting cannot be submitted early by changing client-side values.
 
 ## Tech Stack
 
