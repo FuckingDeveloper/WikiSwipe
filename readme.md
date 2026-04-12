@@ -56,14 +56,45 @@ so voting cannot be submitted early by changing client-side values.
 ```text
 app/
   api/
-  leaderboard/
+    article/
+      random/route.ts
+      translate/route.ts
+    leaderboard/route.ts
+    session/current-article/route.ts
+    vote/route.ts
+  leaderboard/page.tsx
+  globals.css
   layout.tsx
   page.tsx
 components/
+  article-card.tsx
+  article-preloader.tsx
+  loading-surface.tsx
+  mobile-bottom-nav.tsx
+  pwa-register.tsx
+  side-vote-button.tsx
+  site-header.tsx
+  timer-progress.tsx
+  vote-controls.tsx
 hooks/
+  useCountdown.ts
+  useLanguage.ts
+  useSwipe.ts
 lib/
+  db.ts
+  i18n.ts
+  reading-lock.ts
+  session-state.ts
+  types.ts
+  wikipedia.ts
 prisma/
+  schema.prisma
 public/
+  icons/
+  manifest.webmanifest
+  placeholder-article.svg
+  sw.js
+readme_image.jpg
 ```
 
 ## Local Setup
