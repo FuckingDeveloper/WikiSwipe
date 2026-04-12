@@ -1,0 +1,25 @@
+{
+  "name": "WikiSwipe",
+  "short_name": "WikiSwipe",
+  "description": "Swipe and rank random Wikipedia articles after a 60-second reading lock.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#050a13",
+  "theme_color": "#050a13",
+  "categories": ["education", "entertainment", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

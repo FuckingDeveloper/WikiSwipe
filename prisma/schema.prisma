@@ -1,0 +1,22 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Article {
+  id           Int      @id @default(autoincrement())
+  wikiPageId   Int      @unique
+  title        String
+  summary      String
+  imageUrl     String?
+  wikipediaUrl String
+  likes        Int      @default(0)
+  dislikes     Int      @default(0)
+  score        Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
