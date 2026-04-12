@@ -347,16 +347,13 @@ export default function LeaderboardPage() {
                                 />
                               ) : (
                                 <>
-                                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(73,198,255,0.24),transparent_40%),radial-gradient(circle_at_85%_0%,rgba(84,209,157,0.2),transparent_35%),linear-gradient(145deg,#11223a,#0b1528)]" />
-                                  <div className="absolute inset-0 bg-[url('/grain.svg')] opacity-30" />
-                                  <div className="absolute inset-0 flex items-end justify-between p-3">
-                                    <span className="font-serif text-4xl leading-none text-white/30">W</span>
-                                    <span className="rounded-full border border-white/25 bg-black/35 px-2 py-1 text-[11px] text-ink/95">
-                                      {copy.noImage}
-                                    </span>
-                                  </div>
-                                </>
-                              )}
+                              <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(73,198,255,0.24),transparent_40%),radial-gradient(circle_at_85%_0%,rgba(84,209,157,0.2),transparent_35%),linear-gradient(145deg,#11223a,#0b1528)]" />
+                              <div className="absolute inset-0 bg-[url('/grain.svg')] opacity-30" />
+                              <div className="absolute inset-0 flex items-end justify-start p-3">
+                                <span className="font-serif text-4xl leading-none text-white/30">W</span>
+                              </div>
+                            </>
+                          )}
                             </div>
 
                             <div className="flex min-w-0 flex-col gap-2">
