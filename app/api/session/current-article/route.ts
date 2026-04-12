@@ -20,23 +20,35 @@ function cookieOptions() {
 
 function validateBody(
   body: unknown
-): { pageId: number; articleLanguage: SessionState["articleLanguage"]; active: boolean } | null {
+): {
+  pageId: number;
+  articleLanguage: SessionState["articleLanguage"];
+  active: boolean;
+  requiredReadingMs: number | null;
+} | null {
   if (!body || typeof body !== "object") return null;
 
   const candidate = body as Partial<{
     pageId: number;
     articleLanguage: string;
     active: boolean;
+    requiredReadingMs: number;
   }>;
   const pageId = Number(candidate.pageId);
 
   if (!Number.isFinite(pageId)) return null;
   if (!isSupportedLanguage(candidate.articleLanguage)) return null;
 
+  const requiredReadingRaw = Number(candidate.requiredReadingMs);
+  const requiredReadingMs = Number.isFinite(requiredReadingRaw)
+    ? Math.max(1000, Math.min(180000, Math.floor(requiredReadingRaw)))
+    : null;
+
   return {
     pageId,
     articleLanguage: candidate.articleLanguage,
-    active: candidate.active !== false
+    active: candidate.active !== false,
+    requiredReadingMs
   };
 }
 
@@ -44,7 +56,8 @@ function toResponseState(state: SessionState) {
   return {
     ...state,
     readingElapsedMs: Math.max(0, Math.floor(state.readingElapsedMs)),
-    unlocked: state.readingElapsedMs >= READING_LOCK_MS
+    requiredReadingMs: Math.max(1000, Math.floor(state.requiredReadingMs)),
+    unlocked: state.readingElapsedMs >= state.requiredReadingMs
   };
 }
 
@@ -91,6 +104,7 @@ export async function POST(request: NextRequest) {
       pageId: validBody.pageId,
       articleLanguage: validBody.articleLanguage,
       readingElapsedMs: 0,
+      requiredReadingMs: READING_LOCK_MS,
       lastHeartbeatAt: validBody.active ? now : null
     };
   }

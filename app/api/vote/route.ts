@@ -1,6 +1,5 @@
 import { db } from "@/lib/db";
 import {
-  READING_LOCK_MS,
   deserializeSessionState,
   getSessionCookieName,
   settleSessionState
@@ -58,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     const settledState = settleSessionState(sessionState, { keepHeartbeat: false });
-    if (settledState.readingElapsedMs < READING_LOCK_MS) {
+    if (settledState.readingElapsedMs < settledState.requiredReadingMs) {
       return NextResponse.json({ error: "Reading lock is still active." }, { status: 403 });
     }
 

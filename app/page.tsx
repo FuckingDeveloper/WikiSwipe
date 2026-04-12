@@ -15,7 +15,7 @@ import { NormalizedArticle, SwipeDirection, VoteType } from "@/lib/types";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const TIMER_SECONDS = 30;
+const DEFAULT_TIMER_SECONDS = 30;
 const HEARTBEAT_INTERVAL_MS = 2200;
 const VIEWED_STORAGE_KEY = "wikiswipe-viewed-page-ids";
 const HISTORY_LIMIT = 45;
@@ -24,6 +24,7 @@ interface SessionStatePayload {
   pageId: number;
   articleLanguage: AppLanguage;
   readingElapsedMs: number;
+  requiredReadingMs: number;
   lastHeartbeatAt: number | null;
   unlocked: boolean;
 }
@@ -64,12 +65,14 @@ export default function HomePage() {
   const { language, setLanguage, copy } = useLanguage();
 
   const hasReadableArticle = Boolean(article);
+  const hasTimerArticle = Boolean(article);
+  const timerSeconds = article?.readingLockSeconds ?? DEFAULT_TIMER_SECONDS;
   const sessionActive =
     hasReadableArticle && isPageFocused && !loadingArticle && !submittingVote && !pendingSwipe;
 
   const { secondsLeft, progress, isComplete } = useCountdown({
-    duration: TIMER_SECONDS,
-    resetKey: article?.pageId ?? null,
+    duration: timerSeconds,
+    resetKey: `${article?.pageId ?? "none"}-${timerSeconds}`,
     elapsedMs: readingElapsedMs,
     isRunning: sessionActive
   });
@@ -93,13 +96,20 @@ export default function HomePage() {
 
   const syncSession = useCallback(
     async (options: { pageId: number; articleLanguage: AppLanguage; active: boolean }) => {
+      const requiredReadingMs = article?.readingLockSeconds
+        ? article.readingLockSeconds * 1000
+        : null;
+
       try {
         const response = await fetch("/api/session/current-article", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
-          body: JSON.stringify(options)
+          body: JSON.stringify({
+            ...options,
+            requiredReadingMs
+          })
         });
 
         if (!response.ok) {
@@ -112,10 +122,14 @@ export default function HomePage() {
         return null;
       }
     },
-    []
+    [article?.readingLockSeconds]
   );
 
-  const sendPauseBeacon = useCallback((pageId: number, languageCode: AppLanguage): boolean => {
+  const sendPauseBeacon = useCallback((
+    pageId: number,
+    languageCode: AppLanguage,
+    requiredReadingMs?: number
+  ): boolean => {
     if (typeof navigator === "undefined" || typeof navigator.sendBeacon !== "function") {
       return false;
     }
@@ -123,7 +137,8 @@ export default function HomePage() {
     const payload = JSON.stringify({
       pageId,
       articleLanguage: languageCode,
-      active: false
+      active: false,
+      requiredReadingMs
     });
 
     const blob = new Blob([payload], { type: "application/json" });
@@ -266,7 +281,11 @@ export default function HomePage() {
     return () => {
       cancelled = true;
       window.clearInterval(intervalId);
-      const wasSent = sendPauseBeacon(article.pageId, articleLanguage);
+      const wasSent = sendPauseBeacon(
+        article.pageId,
+        articleLanguage,
+        article.readingLockSeconds * 1000
+      );
       if (!wasSent) {
         void syncSession({
           pageId: article.pageId,
@@ -337,7 +356,9 @@ export default function HomePage() {
             active: true
           });
 
-          if (synced && synced.readingElapsedMs < TIMER_SECONDS * 1000) {
+          const requiredMs = synced?.requiredReadingMs ?? timerSeconds * 1000;
+          const elapsedMs = synced?.readingElapsedMs ?? 0;
+          if (elapsedMs < requiredMs) {
             throw new Error("READING_LOCK_ACTIVE");
           }
         }
@@ -373,13 +394,20 @@ export default function HomePage() {
         setSubmittingVote(false);
       }
     },
-    [article, articleLanguage, canVote, language, loadArticle, syncSession]
+    [article, articleLanguage, canVote, language, loadArticle, syncSession, timerSeconds]
   );
 
   const leaderboardHref = `/leaderboard?lang=${language}`;
   const toggleMobileInfo = () => {
+    if (!hasTimerArticle) return;
     setMobileInfoOpen((current) => !current);
   };
+
+  useEffect(() => {
+    if (!hasTimerArticle && mobileInfoOpen) {
+      setMobileInfoOpen(false);
+    }
+  }, [hasTimerArticle, mobileInfoOpen]);
 
   const contentVariants = {
     hidden: { opacity: 0, y: 10 },
@@ -420,12 +448,13 @@ export default function HomePage() {
         >
           <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
             <TimerProgress
-              secondsLeft={secondsLeft}
-              totalSeconds={TIMER_SECONDS}
+              secondsLeft={hasTimerArticle ? secondsLeft : null}
+              totalSeconds={hasTimerArticle ? timerSeconds : null}
               progress={progress}
               ariaLabel={copy.timerAria}
               readingLockLabel={copy.readingLock}
-              unlocksAfterText={copy.unlocksAfter(TIMER_SECONDS)}
+              pendingText={copy.timerPending}
+              unlocksAfterText={copy.unlocksAfter(timerSeconds)}
             />
 
             <div className="rounded-2xl border border-white/10 bg-black/20 p-3 text-xs text-muted">
@@ -550,7 +579,7 @@ export default function HomePage() {
               <div>
                 <p className="uppercase tracking-[0.2em] text-[10px] text-ink/80">{copy.readingLock}</p>
                 <p className="mt-1 text-sm text-ink">{secondsLeft}s</p>
-                <p className="mt-1">{copy.unlocksAfter(TIMER_SECONDS)}</p>
+                <p className="mt-1">{copy.unlocksAfter(timerSeconds)}</p>
               </div>
               <div className="border-t border-white/10 pt-3">
                 <p className="uppercase tracking-[0.2em] text-[10px] text-ink/80">{copy.swipeStatus}</p>
@@ -564,9 +593,13 @@ export default function HomePage() {
 
       <MobileBottomNav
         language={language}
-        timer={{ secondsLeft, totalSeconds: TIMER_SECONDS }}
+        timer={{
+          secondsLeft: hasTimerArticle ? secondsLeft : null,
+          totalSeconds: hasTimerArticle ? timerSeconds : null,
+          disabled: !hasTimerArticle
+        }}
         timerExpanded={mobileInfoOpen}
-        onTimerToggle={toggleMobileInfo}
+        onTimerToggle={hasTimerArticle ? toggleMobileInfo : undefined}
         onNavigate={() => setMobileInfoOpen(false)}
         labels={{
           home: copy.mobileNavHome,
