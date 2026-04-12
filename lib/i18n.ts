@@ -36,6 +36,7 @@ export interface UICopy {
   swipeStatus: string;
   swipeStatusLocked: string;
   swipeStatusUnlocked: string;
+  machineTranslatedBadge: string;
   openWikipedia: string;
   noImage: string;
   noArticleTitle: string;
@@ -87,6 +88,7 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     swipeStatus: "Swipe Status",
     swipeStatusLocked: "Locked while reading timer is active.",
     swipeStatusUnlocked: "Unlocked: drag card left or right.",
+    machineTranslatedBadge: "Machine translated",
     openWikipedia: "Open on Wikipedia",
     noImage: "Image unavailable",
     noArticleTitle: "No article available",
@@ -136,6 +138,7 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     swipeStatus: "Статус свайпа",
     swipeStatusLocked: "Заблокировано, пока активен таймер чтения.",
     swipeStatusUnlocked: "Разблокировано: тяните карточку влево или вправо.",
+    machineTranslatedBadge: "Машинный перевод",
     openWikipedia: "Открыть в Википедии",
     noImage: "Изображение недоступно",
     noArticleTitle: "Статья недоступна",
@@ -185,6 +188,7 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     swipeStatus: "Swipe-Status",
     swipeStatusLocked: "Gesperrt, solange der Lesetimer aktiv ist.",
     swipeStatusUnlocked: "Freigegeben: Karte nach links oder rechts ziehen.",
+    machineTranslatedBadge: "Maschinelle Übersetzung",
     openWikipedia: "In Wikipedia öffnen",
     noImage: "Bild nicht verfügbar",
     noArticleTitle: "Kein Artikel verfügbar",
@@ -234,6 +238,7 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     swipeStatus: "Statut du swipe",
     swipeStatusLocked: "Verrouillé tant que le minuteur est actif.",
     swipeStatusUnlocked: "Déverrouillé : glissez la carte à gauche ou à droite.",
+    machineTranslatedBadge: "Traduction automatique",
     openWikipedia: "Ouvrir sur Wikipédia",
     noImage: "Image indisponible",
     noArticleTitle: "Aucun article disponible",
@@ -283,6 +288,7 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     swipeStatus: "滑动状态",
     swipeStatusLocked: "阅读计时进行中，暂不可投票。",
     swipeStatusUnlocked: "已解锁：向左或向右拖动卡片。",
+    machineTranslatedBadge: "机器翻译",
     openWikipedia: "在维基百科中打开",
     noImage: "暂无图片",
     noArticleTitle: "暂无可用词条",
@@ -332,6 +338,7 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     swipeStatus: "Estado del swipe",
     swipeStatusLocked: "Bloqueado mientras el temporizador de lectura está activo.",
     swipeStatusUnlocked: "Desbloqueado: arrastra la tarjeta a izquierda o derecha.",
+    machineTranslatedBadge: "Traducción automática",
     openWikipedia: "Abrir en Wikipedia",
     noImage: "Imagen no disponible",
     noArticleTitle: "Artículo no disponible",

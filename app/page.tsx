@@ -462,6 +462,7 @@ export default function HomePage() {
                   labels={{
                     yes: copy.voteYes,
                     no: copy.voteNo,
+                    machineTranslatedBadge: copy.machineTranslatedBadge,
                     openWikipedia: copy.openWikipedia,
                     noImage: copy.noImage,
                     articleAriaPrefix: copy.articleCardAriaPrefix

@@ -2,7 +2,6 @@ import { AppLanguage } from "@/lib/i18n";
 import { NormalizedArticle } from "@/lib/types";
 
 const MIN_SUMMARY_LENGTH = 280;
-const MIN_LOCALIZED_SUMMARY_LENGTH = 120;
 const MAX_ATTEMPTS = 12;
 const USER_AGENT = "WikiSwipe/1.0";
 const GOOGLE_TRANSLATE_URL = "https://translate.googleapis.com/translate_a/single";
@@ -72,7 +71,9 @@ function normalizeArticle(page: WikiPageResponse): NormalizedArticle {
     title: page.title,
     summary: cleanSummary(page.extract ?? ""),
     imageUrl: page.original?.source ?? page.thumbnail?.source ?? null,
-    wikipediaUrl: page.fullurl ?? `https://en.wikipedia.org/?curid=${page.pageid}`
+    wikipediaUrl: page.fullurl ?? `https://en.wikipedia.org/?curid=${page.pageid}`,
+    contentLanguage: "en",
+    isMachineTranslated: false
   };
 }
 
@@ -195,20 +196,20 @@ async function localizeArticle(
   if (!localizedPage?.title || !localizedPage.extract) return null;
 
   const localizedSummary = cleanSummary(localizedPage.extract);
+  if (!localizedSummary) return null;
 
   return {
     pageId: baseArticle.pageId,
     title: localizedPage.title,
-    summary:
-      localizedSummary.length >= MIN_LOCALIZED_SUMMARY_LENGTH
-        ? localizedSummary
-        : baseArticle.summary,
+    summary: localizedSummary,
     imageUrl:
       localizedPage.original?.source ??
       localizedPage.thumbnail?.source ??
       baseArticle.imageUrl,
     wikipediaUrl:
-      localizedPage.fullurl ?? baseArticle.wikipediaUrl
+      localizedPage.fullurl ?? baseArticle.wikipediaUrl,
+    contentLanguage: language,
+    isMachineTranslated: false
   };
 }
 
@@ -266,7 +267,9 @@ async function machineTranslateArticle(
   return {
     ...baseArticle,
     title: translatedTitle ?? baseArticle.title,
-    summary: translatedSummary
+    summary: translatedSummary,
+    contentLanguage: language,
+    isMachineTranslated: true
   };
 }
 

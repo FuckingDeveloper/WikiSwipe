@@ -15,6 +15,7 @@ interface ArticleCardProps {
   labels: {
     yes: string;
     no: string;
+    machineTranslatedBadge: string;
     openWikipedia: string;
     noImage: string;
     articleAriaPrefix: string;
@@ -123,10 +124,10 @@ export function ArticleCard({
             />
             <div className="absolute inset-0 flex items-end justify-between px-6 pb-5">
               <span className="font-serif text-7xl text-white/35">{article.title[0]}</span>
-              <span className="rounded-full border border-white/25 bg-black/35 px-3 py-1 text-xs text-ink/90">
-                {labels.noImage}
-              </span>
             </div>
+            <span className="absolute right-4 top-4 rounded-full border border-white/25 bg-black/45 px-3 py-1 text-xs text-ink/90">
+              {labels.noImage}
+            </span>
           </>
         )}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0a1020] via-[#0a1020]/25 to-transparent" />
@@ -142,6 +143,11 @@ export function ArticleCard({
 
       <div className="space-y-5 p-5 sm:p-7">
         <h2 className="font-serif text-3xl leading-tight text-ink sm:text-4xl">{article.title}</h2>
+        {article.isMachineTranslated ? (
+          <p className="inline-flex w-fit rounded-full border border-amber-300/35 bg-amber-300/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-amber-100">
+            {labels.machineTranslatedBadge}
+          </p>
+        ) : null}
 
         <div className="max-h-72 space-y-4 overflow-y-auto pr-1 text-[15px] leading-relaxed text-slate-200/90 sm:text-base">
           {paragraphs.map((paragraph, index) => (
