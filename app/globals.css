@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --font-sans: "Avenir Next", "Avenir", "Segoe UI", "Helvetica Neue", "Noto Sans", sans-serif;
+  --font-serif: "Iowan Old Style", "Baskerville", "Palatino Linotype", "Times New Roman", serif;
+}
+
+* {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: #eff4ff;
+  font-family: var(--font-sans), sans-serif;
+  background-color: #050a13;
+  background-image:
+    radial-gradient(circle at 8% 18%, rgba(46, 121, 205, 0.26), transparent 36%),
+    radial-gradient(circle at 80% 2%, rgba(84, 209, 157, 0.16), transparent 32%),
+    radial-gradient(circle at 60% 82%, rgba(73, 198, 255, 0.12), transparent 38%),
+    linear-gradient(150deg, #060b14 0%, #08101d 52%, #050910 100%);
+}
+
+::selection {
+  background: rgba(84, 209, 157, 0.35);
+  color: #f5fbff;
+}
