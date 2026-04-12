@@ -124,10 +124,10 @@ export function ArticleCard({
             />
             <div className="absolute inset-0 flex items-end justify-between px-6 pb-5">
               <span className="font-serif text-7xl text-white/35">{article.title[0]}</span>
-              <span className="rounded-full border border-white/25 bg-black/35 px-3 py-1 text-xs text-ink/90">
-                {labels.noImage}
-              </span>
             </div>
+            <span className="absolute right-4 top-4 rounded-full border border-white/25 bg-black/45 px-3 py-1 text-xs text-ink/90">
+              {labels.noImage}
+            </span>
           </>
         )}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0a1020] via-[#0a1020]/25 to-transparent" />
