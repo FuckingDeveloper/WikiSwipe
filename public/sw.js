@@ -1,4 +1,4 @@
-const CACHE_NAME = "wikiswipe-v2";
+const CACHE_NAME = "wikiswipe-v3";
 const STATIC_ASSETS = [
   "/manifest.webmanifest",
   "/icons/icon.svg",
@@ -37,6 +37,21 @@ self.addEventListener("fetch", (event) => {
 
   if (request.mode === "navigate" || url.pathname.startsWith("/api/")) {
     event.respondWith(fetch(request));
+    return;
+  }
+
+  if (url.pathname.startsWith("/_next/")) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.status === 200 && response.type === "basic") {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request))
+    );
     return;
   }
 

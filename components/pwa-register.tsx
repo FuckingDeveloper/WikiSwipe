@@ -4,8 +4,29 @@ import { useEffect } from "react";
 
 export function PWARegister() {
   useEffect(() => {
-    if (process.env.NODE_ENV !== "production") return;
     if (!("serviceWorker" in navigator)) return;
+
+    if (process.env.NODE_ENV !== "production") {
+      const cleanupDevServiceWorkers = async () => {
+        try {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(registrations.map((registration) => registration.unregister()));
+          if ("caches" in window) {
+            const keys = await caches.keys();
+            await Promise.all(
+              keys
+                .filter((key) => key.startsWith("wikiswipe-"))
+                .map((key) => caches.delete(key))
+            );
+          }
+        } catch {
+          // Ignore cleanup failures in development.
+        }
+      };
+
+      void cleanupDevServiceWorkers();
+      return;
+    }
 
     const handleControllerChange = () => {
       window.location.reload();
