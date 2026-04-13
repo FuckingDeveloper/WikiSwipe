@@ -6,6 +6,7 @@ import {
   settleSessionState
 } from "@/lib/session-state";
 import { fetchWikipediaArticleByPageId } from "@/lib/wikipedia";
+import { Prisma } from "@prisma/client";
 import { NormalizedArticle, VoteType } from "@/lib/types";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
     }
 
     const now = new Date();
-    const updatedArticle = await db.$transaction(async (tx) => {
+    const updatedArticle = await db.$transaction(async (tx: Prisma.TransactionClient) => {
       const consumeNonce = await tx.voteNonce.updateMany({
         where: {
           nonce: settledState.voteNonce,

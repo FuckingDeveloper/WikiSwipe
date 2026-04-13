@@ -3,8 +3,9 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:
 
 const COOKIE_NAME = "wikiswipe_state";
 const rawSessionSecret = process.env.SESSION_SECRET;
+const isProductionBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
 
-if (!rawSessionSecret && process.env.NODE_ENV === "production") {
+if (!rawSessionSecret && process.env.NODE_ENV === "production" && !isProductionBuildPhase) {
   throw new Error("SESSION_SECRET is required in production.");
 }
 
