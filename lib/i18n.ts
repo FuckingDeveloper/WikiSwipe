@@ -38,6 +38,7 @@ export interface UICopy {
   swipeStatusLocked: string;
   swipeStatusUnlocked: string;
   machineTranslatedBadge: string;
+  alreadyVotedBadge: string;
   openWikipedia: string;
   noImage: string;
   noArticleTitle: string;
@@ -48,6 +49,9 @@ export interface UICopy {
   articleLoadError: string;
   articleTranslateError: string;
   voteError: string;
+  voteAlreadyVotedToast: string;
+  voteSessionExpiredToast: string;
+  skipArticle: string;
   leaderboardTitle: string;
   leaderboardLoading: string;
   leaderboardLoadError: string;
@@ -91,6 +95,7 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     swipeStatusLocked: "Locked while reading timer is active.",
     swipeStatusUnlocked: "Unlocked: drag card left or right.",
     machineTranslatedBadge: "Machine translated",
+    alreadyVotedBadge: "Already voted",
     openWikipedia: "Open on Wikipedia",
     noImage: "Image unavailable",
     noArticleTitle: "No article available",
@@ -101,6 +106,9 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     articleLoadError: "Could not load an article.",
     articleTranslateError: "Could not translate the current article.",
     voteError: "Vote could not be saved.",
+    voteAlreadyVotedToast: "You already voted for this article.",
+    voteSessionExpiredToast: "Vote session expired for this article.",
+    skipArticle: "Skip article",
     leaderboardTitle: "Top Articles",
     leaderboardLoading: "Loading leaderboard...",
     leaderboardLoadError: "Could not load leaderboard.",
@@ -142,6 +150,7 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     swipeStatusLocked: "Заблокировано, пока активен таймер чтения.",
     swipeStatusUnlocked: "Разблокировано: тяните карточку влево или вправо.",
     machineTranslatedBadge: "Машинный перевод",
+    alreadyVotedBadge: "Уже голосовали",
     openWikipedia: "Открыть в Википедии",
     noImage: "Изображение недоступно",
     noArticleTitle: "Статья недоступна",
@@ -152,6 +161,9 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     articleLoadError: "Не удалось загрузить статью.",
     articleTranslateError: "Не удалось перевести текущую статью.",
     voteError: "Не удалось сохранить голос.",
+    voteAlreadyVotedToast: "Вы уже голосовали за эту статью.",
+    voteSessionExpiredToast: "Сессия голосования для этой статьи истекла.",
+    skipArticle: "Пропустить статью",
     leaderboardTitle: "Топ статей",
     leaderboardLoading: "Загружаем рейтинг...",
     leaderboardLoadError: "Не удалось загрузить рейтинг.",
@@ -193,6 +205,7 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     swipeStatusLocked: "Gesperrt, solange der Lesetimer aktiv ist.",
     swipeStatusUnlocked: "Freigegeben: Karte nach links oder rechts ziehen.",
     machineTranslatedBadge: "Maschinelle Übersetzung",
+    alreadyVotedBadge: "Bereits abgestimmt",
     openWikipedia: "In Wikipedia öffnen",
     noImage: "Bild nicht verfügbar",
     noArticleTitle: "Kein Artikel verfügbar",
@@ -203,6 +216,9 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     articleLoadError: "Artikel konnte nicht geladen werden.",
     articleTranslateError: "Aktueller Artikel konnte nicht übersetzt werden.",
     voteError: "Stimme konnte nicht gespeichert werden.",
+    voteAlreadyVotedToast: "Du hast für diesen Artikel bereits abgestimmt.",
+    voteSessionExpiredToast: "Die Abstimmungssitzung für diesen Artikel ist abgelaufen.",
+    skipArticle: "Artikel überspringen",
     leaderboardTitle: "Top-Artikel",
     leaderboardLoading: "Bestenliste wird geladen...",
     leaderboardLoadError: "Bestenliste konnte nicht geladen werden.",
@@ -244,6 +260,7 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     swipeStatusLocked: "Verrouillé tant que le minuteur est actif.",
     swipeStatusUnlocked: "Déverrouillé : glissez la carte à gauche ou à droite.",
     machineTranslatedBadge: "Traduction automatique",
+    alreadyVotedBadge: "Déjà voté",
     openWikipedia: "Ouvrir sur Wikipédia",
     noImage: "Image indisponible",
     noArticleTitle: "Aucun article disponible",
@@ -254,6 +271,9 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     articleLoadError: "Impossible de charger un article.",
     articleTranslateError: "Impossible de traduire l'article actuel.",
     voteError: "Impossible d'enregistrer le vote.",
+    voteAlreadyVotedToast: "Vous avez déjà voté pour cet article.",
+    voteSessionExpiredToast: "La session de vote pour cet article a expiré.",
+    skipArticle: "Passer l'article",
     leaderboardTitle: "Meilleurs articles",
     leaderboardLoading: "Chargement du classement...",
     leaderboardLoadError: "Impossible de charger le classement.",
@@ -295,6 +315,7 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     swipeStatusLocked: "阅读计时进行中，暂不可投票。",
     swipeStatusUnlocked: "已解锁：向左或向右拖动卡片。",
     machineTranslatedBadge: "机器翻译",
+    alreadyVotedBadge: "已投票",
     openWikipedia: "在维基百科中打开",
     noImage: "暂无图片",
     noArticleTitle: "暂无可用词条",
@@ -305,6 +326,9 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     articleLoadError: "加载词条失败。",
     articleTranslateError: "当前词条翻译失败。",
     voteError: "保存投票失败。",
+    voteAlreadyVotedToast: "你已经为这篇词条投过票。",
+    voteSessionExpiredToast: "该词条的投票会话已过期。",
+    skipArticle: "跳过词条",
     leaderboardTitle: "热门词条",
     leaderboardLoading: "正在加载排行榜...",
     leaderboardLoadError: "加载排行榜失败。",
@@ -346,6 +370,7 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     swipeStatusLocked: "Bloqueado mientras el temporizador de lectura está activo.",
     swipeStatusUnlocked: "Desbloqueado: arrastra la tarjeta a izquierda o derecha.",
     machineTranslatedBadge: "Traducción automática",
+    alreadyVotedBadge: "Ya votaste",
     openWikipedia: "Abrir en Wikipedia",
     noImage: "Imagen no disponible",
     noArticleTitle: "Artículo no disponible",
@@ -356,6 +381,9 @@ export const UI_COPY: Record<AppLanguage, UICopy> = {
     articleLoadError: "No se pudo cargar el artículo.",
     articleTranslateError: "No se pudo traducir el artículo actual.",
     voteError: "No se pudo guardar el voto.",
+    voteAlreadyVotedToast: "Ya votaste por este artículo.",
+    voteSessionExpiredToast: "La sesión de voto para este artículo expiró.",
+    skipArticle: "Saltar artículo",
     leaderboardTitle: "Mejores artículos",
     leaderboardLoading: "Cargando ranking...",
     leaderboardLoadError: "No se pudo cargar el ranking.",

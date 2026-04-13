@@ -77,7 +77,8 @@ function normalizeArticle(page: WikiPageResponse): NormalizedArticle {
     wikipediaUrl: page.fullurl ?? `https://en.wikipedia.org/?curid=${page.pageid}`,
     readingLockSeconds: estimateReadingLockSeconds(summary),
     contentLanguage: "en",
-    isMachineTranslated: false
+    isMachineTranslated: false,
+    alreadyVoted: false
   };
 }
 
@@ -214,7 +215,8 @@ async function localizeArticle(
       localizedPage.fullurl ?? baseArticle.wikipediaUrl,
     readingLockSeconds: baseArticle.readingLockSeconds,
     contentLanguage: language,
-    isMachineTranslated: false
+    isMachineTranslated: false,
+    alreadyVoted: baseArticle.alreadyVoted
   };
 }
 
@@ -275,7 +277,8 @@ async function machineTranslateArticle(
     summary: translatedSummary,
     readingLockSeconds: baseArticle.readingLockSeconds,
     contentLanguage: language,
-    isMachineTranslated: true
+    isMachineTranslated: true,
+    alreadyVoted: baseArticle.alreadyVoted
   };
 }
 

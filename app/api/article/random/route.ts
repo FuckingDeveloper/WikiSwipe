@@ -9,6 +9,7 @@ import {
   SessionState,
   VOTE_NONCE_TTL_MS
 } from "@/lib/session-state";
+import { deserializeVoteHistory, getVoteHistoryCookieName } from "@/lib/vote-history";
 import { fetchRandomWikipediaArticle } from "@/lib/wikipedia";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -47,9 +48,15 @@ export async function GET(request: NextRequest) {
   const langParam = request.nextUrl.searchParams.get("lang");
   const language = isSupportedLanguage(langParam) ? langParam : "en";
   const excludedIds = parseExcludedIds(exclude);
+  const voteHistory = deserializeVoteHistory(
+    request.cookies.get(getVoteHistoryCookieName())?.value
+  );
+  const combinedExcludedIds = Array.from(
+    new Set([...excludedIds, ...voteHistory.votedPageIds])
+  );
 
   try {
-    const article = await fetchRandomWikipediaArticle(excludedIds, language);
+    const article = await fetchRandomWikipediaArticle(combinedExcludedIds, language);
 
     if (!article) {
       return NextResponse.json(
@@ -58,7 +65,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const response = NextResponse.json(article);
+    const enrichedArticle = {
+      ...article,
+      alreadyVoted: voteHistory.votedPageIds.includes(article.pageId)
+    };
+
+    const response = NextResponse.json(enrichedArticle);
 
     await db.voteNonce.deleteMany({
       where: {
@@ -92,15 +104,15 @@ export async function GET(request: NextRequest) {
             ...currentState,
             articleLanguage: language,
             readingElapsedMs: 0,
-            requiredReadingMs: article.readingLockSeconds * 1000,
+            requiredReadingMs: enrichedArticle.readingLockSeconds * 1000,
             voteNonce,
             lastHeartbeatAt: null
           }
         : {
-            pageId: article.pageId,
+            pageId: enrichedArticle.pageId,
             articleLanguage: language,
             readingElapsedMs: 0,
-            requiredReadingMs: article.readingLockSeconds * 1000,
+            requiredReadingMs: enrichedArticle.readingLockSeconds * 1000,
             voteNonce,
             lastHeartbeatAt: null
           };

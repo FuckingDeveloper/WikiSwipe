@@ -16,6 +16,7 @@ interface ArticleCardProps {
     yes: string;
     no: string;
     machineTranslatedBadge: string;
+    alreadyVotedBadge: string;
     openWikipedia: string;
     noImage: string;
     articleAriaPrefix: string;
@@ -143,10 +144,19 @@ export function ArticleCard({
 
       <div className="space-y-5 p-5 sm:p-7">
         <h2 className="font-serif text-3xl leading-tight text-ink sm:text-4xl">{article.title}</h2>
-        {article.isMachineTranslated ? (
-          <p className="inline-flex w-fit rounded-full border border-amber-300/35 bg-amber-300/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-amber-100">
-            {labels.machineTranslatedBadge}
-          </p>
+        {article.isMachineTranslated || article.alreadyVoted ? (
+          <div className="flex flex-wrap gap-2">
+            {article.isMachineTranslated ? (
+              <p className="inline-flex w-fit rounded-full border border-amber-300/35 bg-amber-300/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-amber-100">
+                {labels.machineTranslatedBadge}
+              </p>
+            ) : null}
+            {article.alreadyVoted ? (
+              <p className="inline-flex w-fit rounded-full border border-brand/40 bg-brand/20 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-sky-100">
+                {labels.alreadyVotedBadge}
+              </p>
+            ) : null}
+          </div>
         ) : null}
 
         <div className="max-h-72 space-y-4 overflow-y-auto pr-1 text-[15px] leading-relaxed text-slate-200/90 sm:text-base">

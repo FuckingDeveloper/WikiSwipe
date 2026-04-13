@@ -147,6 +147,7 @@ Notes:
 - On startup container runs `prisma db push`, so schema is applied automatically.
 - `docker-compose.yml` uses `restart: unless-stopped`.
 - `SESSION_SECRET` is required (compose will fail fast if it is missing).
+- If port `3000` is busy: `APP_PORT=3001 docker compose up -d --build`
 
 ## Docker Deploy (Production)
 
@@ -157,6 +158,12 @@ Use dedicated production compose config with automatic restart and healthcheck.
 
 ```bash
 docker compose -f docker-compose.prod.yml up -d --build
+```
+
+If port `3000` is busy:
+
+```bash
+APP_PORT=3001 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
 3. Watch status/logs:

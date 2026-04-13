@@ -5,6 +5,12 @@ import {
   getSessionCookieName,
   settleSessionState
 } from "@/lib/session-state";
+import {
+  appendVotedPageId,
+  deserializeVoteHistory,
+  getVoteHistoryCookieName,
+  serializeVoteHistory
+} from "@/lib/vote-history";
 import { fetchWikipediaArticleByPageId } from "@/lib/wikipedia";
 import { Prisma } from "@prisma/client";
 import { NormalizedArticle, VoteType } from "@/lib/types";
@@ -21,6 +27,16 @@ function cookieOptions() {
     sameSite: "lax" as const,
     secure: process.env.NODE_ENV === "production",
     path: "/"
+  };
+}
+
+function voteHistoryCookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365
   };
 }
 
@@ -53,6 +69,19 @@ export async function POST(request: NextRequest) {
     }
 
     const { article, vote } = body;
+    const currentVoteHistory = deserializeVoteHistory(
+      request.cookies.get(getVoteHistoryCookieName())?.value
+    );
+
+    if (currentVoteHistory.votedPageIds.includes(article.pageId)) {
+      return NextResponse.json(
+        {
+          error: "You already voted for this article.",
+          errorCode: "ALREADY_VOTED"
+        },
+        { status: 409 }
+      );
+    }
 
     const encryptedState = request.cookies.get(getSessionCookieName())?.value;
     const sessionState = deserializeSessionState(encryptedState);
@@ -142,12 +171,20 @@ export async function POST(request: NextRequest) {
       ...cookieOptions(),
       maxAge: 0
     });
+    response.cookies.set(
+      getVoteHistoryCookieName(),
+      serializeVoteHistory(appendVotedPageId(currentVoteHistory, article.pageId)),
+      voteHistoryCookieOptions()
+    );
 
     return response;
   } catch (error) {
     if (error instanceof Error && error.message === "VOTE_NONCE_INVALID") {
       return NextResponse.json(
-        { error: "Vote is already used or expired for this article session." },
+        {
+          error: "Vote is already used or expired for this article session.",
+          errorCode: "VOTE_SESSION_EXPIRED"
+        },
         { status: 409 }
       );
     }
