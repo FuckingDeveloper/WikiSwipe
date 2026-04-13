@@ -80,7 +80,7 @@ export function ArticleCard({
       }}
       transition={{ duration: pendingSwipe ? 0.32 : 0.45, ease: "easeOut" }}
       style={{ x, rotate }}
-      className="relative overflow-hidden rounded-[28px] border border-white/15 bg-panel/80 shadow-glow backdrop-blur-xl"
+      className="relative touch-pan-y overflow-hidden rounded-[28px] border border-white/15 bg-panel/80 shadow-glow backdrop-blur-xl"
       drag={swipe.drag}
       dragElastic={swipe.dragElastic}
       dragMomentum={swipe.dragMomentum}
@@ -159,7 +159,7 @@ export function ArticleCard({
           </div>
         ) : null}
 
-        <div className="max-h-72 space-y-4 overflow-y-auto pr-1 text-[15px] leading-relaxed text-slate-200/90 sm:text-base">
+        <div className="space-y-4 text-[15px] leading-relaxed text-slate-200/90 sm:text-base lg:max-h-72 lg:overflow-y-auto lg:pr-1">
           {paragraphs.map((paragraph, index) => (
             <p key={`${article.pageId}-${index}`}>{paragraph.endsWith(".") ? paragraph : `${paragraph}.`}</p>
           ))}
