@@ -1,0 +1,23 @@
+services:
+  wikiswipe:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wikiswipe-prod
+    restart: always
+    init: true
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: file:/data/dev.db
+      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET in .env or shell}
+    volumes:
+      - ./data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/ >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 25s

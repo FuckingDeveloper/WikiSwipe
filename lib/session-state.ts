@@ -2,8 +2,14 @@ import { AppLanguage, isSupportedLanguage } from "@/lib/i18n";
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 
 const COOKIE_NAME = "wikiswipe_state";
+const rawSessionSecret = process.env.SESSION_SECRET;
+
+if (!rawSessionSecret && process.env.NODE_ENV === "production") {
+  throw new Error("SESSION_SECRET is required in production.");
+}
+
 const SESSION_SECRET =
-  process.env.SESSION_SECRET ?? "dev-only-insecure-change-me-for-production";
+  rawSessionSecret ?? "dev-only-insecure-change-me-for-production";
 
 const AES_ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12;
