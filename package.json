@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "clean": "rm -rf .next",
+    "predev": "prisma generate",
     "dev": "next dev",
     "dev:reset": "rm -rf .next && next dev",
+    "prebuild": "prisma generate",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

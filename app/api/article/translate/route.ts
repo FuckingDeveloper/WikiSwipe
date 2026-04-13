@@ -1,4 +1,5 @@
 import { isSupportedLanguage } from "@/lib/i18n";
+import { deserializeVoteHistory, getVoteHistoryCookieName } from "@/lib/vote-history";
 import { fetchWikipediaArticleByPageId } from "@/lib/wikipedia";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -22,7 +23,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Article not found." }, { status: 404 });
     }
 
-    return NextResponse.json(article);
+    const voteHistory = deserializeVoteHistory(
+      request.cookies.get(getVoteHistoryCookieName())?.value
+    );
+
+    return NextResponse.json({
+      ...article,
+      alreadyVoted: voteHistory.votedPageIds.includes(article.pageId)
+    });
   } catch (error) {
     console.error("/api/article/translate failed", error);
     return NextResponse.json({ error: "Translation failed." }, { status: 500 });

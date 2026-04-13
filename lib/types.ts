@@ -9,6 +9,7 @@ export interface NormalizedArticle {
   readingLockSeconds: number;
   contentLanguage: AppLanguage;
   isMachineTranslated: boolean;
+  alreadyVoted: boolean;
 }
 
 export type VoteType = "like" | "dislike";

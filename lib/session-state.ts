@@ -2,8 +2,15 @@ import { AppLanguage, isSupportedLanguage } from "@/lib/i18n";
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 
 const COOKIE_NAME = "wikiswipe_state";
+const rawSessionSecret = process.env.SESSION_SECRET;
+const isProductionBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
+
+if (!rawSessionSecret && process.env.NODE_ENV === "production" && !isProductionBuildPhase) {
+  throw new Error("SESSION_SECRET is required in production.");
+}
+
 const SESSION_SECRET =
-  process.env.SESSION_SECRET ?? "dev-only-insecure-change-me-for-production";
+  rawSessionSecret ?? "dev-only-insecure-change-me-for-production";
 
 const AES_ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12;
@@ -11,12 +18,14 @@ const IV_LENGTH = 12;
 export const READING_LOCK_SECONDS = 30;
 export const READING_LOCK_MS = READING_LOCK_SECONDS * 1000;
 export const HEARTBEAT_MAX_STEP_MS = 3200;
+export const VOTE_NONCE_TTL_MS = 1000 * 60 * 60;
 
 type SessionState = {
   pageId: number;
   articleLanguage: AppLanguage;
   readingElapsedMs: number;
   requiredReadingMs: number;
+  voteNonce: string;
   lastHeartbeatAt: number | null;
 };
 
@@ -77,6 +86,8 @@ function isValidState(value: unknown): value is SessionState {
       isSupportedLanguage(candidate.articleLanguage) &&
       Number.isFinite(candidate.readingElapsedMs) &&
       Number.isFinite(candidate.requiredReadingMs) &&
+      typeof candidate.voteNonce === "string" &&
+      candidate.voteNonce.length >= 16 &&
       (candidate.lastHeartbeatAt === null || Number.isFinite(candidate.lastHeartbeatAt))
   );
 }
@@ -115,6 +126,7 @@ export function settleSessionState(
     articleLanguage: state.articleLanguage,
     readingElapsedMs,
     requiredReadingMs: Math.max(1000, Math.floor(state.requiredReadingMs)),
+    voteNonce: state.voteNonce,
     lastHeartbeatAt: keepHeartbeat ? now : null
   };
 }
@@ -138,11 +150,16 @@ export function deserializeSessionState(cookieValue: string | undefined): Sessio
       articleLanguage: parsed.articleLanguage,
       readingElapsedMs: Math.max(0, Math.floor(parsed.readingElapsedMs)),
       requiredReadingMs: Math.max(1000, Math.floor(parsed.requiredReadingMs)),
+      voteNonce: parsed.voteNonce,
       lastHeartbeatAt: parsed.lastHeartbeatAt === null ? null : Math.floor(parsed.lastHeartbeatAt)
     };
   } catch {
     return null;
   }
+}
+
+export function generateVoteNonce(): string {
+  return toBase64Url(randomBytes(24));
 }
 
 export function getSessionCookieName(): string {

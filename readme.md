@@ -89,15 +89,20 @@ lib/
   wikipedia.ts
 prisma/
   schema.prisma
+docker/
+  entrypoint.sh
 public/
   icons/
   manifest.webmanifest
   placeholder-article.svg
   sw.js
+Dockerfile
+docker-compose.yml
+docker-compose.prod.yml
 readme_image.jpg
 ```
 
-## Local Setup
+## Local Setup (without Docker)
 
 ```bash
 npm install
@@ -110,6 +115,69 @@ npm run dev
 Set a strong `SESSION_SECRET` value in `.env` before production deploy.
 
 Open the URL shown by Next.js in terminal (usually `http://localhost:3000`).
+
+## Docker Deploy
+
+SQLite file is stored on the host machine (outside container) in `./data/dev.db`, so removing/recreating the container does not delete data.
+
+1. Set `SESSION_SECRET` in `.env` (or export it in shell).
+2. Build and run:
+
+```bash
+docker compose up -d --build
+```
+
+3. Open app:
+
+```text
+http://localhost:3000
+```
+
+Useful commands:
+
+```bash
+docker compose logs -f
+docker compose down
+```
+
+Notes:
+
+- DB path inside container: `/data/dev.db`
+- DB path on host: `./data/dev.db`
+- On startup container runs `prisma db push`, so schema is applied automatically.
+- `docker-compose.yml` uses `restart: unless-stopped`.
+- `SESSION_SECRET` is required (compose will fail fast if it is missing).
+- If port `3000` is busy: `APP_PORT=3001 docker compose up -d --build`
+
+## Docker Deploy (Production)
+
+Use dedicated production compose config with automatic restart and healthcheck.
+
+1. Set a strong `SESSION_SECRET` in `.env` on the server.
+2. Start production stack:
+
+```bash
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+If port `3000` is busy:
+
+```bash
+APP_PORT=3001 docker compose -f docker-compose.prod.yml up -d --build
+```
+
+3. Watch status/logs:
+
+```bash
+docker compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml logs -f
+```
+
+4. Stop production stack:
+
+```bash
+docker compose -f docker-compose.prod.yml down
+```
 
 ## Scripts
 

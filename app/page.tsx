@@ -33,6 +33,11 @@ interface SessionStateResponse {
   state: SessionStatePayload | null;
 }
 
+interface VoteApiErrorResponse {
+  error?: string;
+  errorCode?: string;
+}
+
 function parseStoredIds(raw: string | null): number[] {
   if (!raw) return [];
 
@@ -61,11 +66,13 @@ export default function HomePage() {
   const [pendingSwipe, setPendingSwipe] = useState<SwipeDirection | null>(null);
   const [mobileInfoOpen, setMobileInfoOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [toastCode, setToastCode] = useState<"ALREADY_VOTED" | "VOTE_SESSION_EXPIRED" | null>(null);
 
   const { language, setLanguage, copy } = useLanguage();
 
   const hasReadableArticle = Boolean(article);
   const hasTimerArticle = Boolean(article);
+  const isAlreadyVoted = Boolean(article?.alreadyVoted);
   const timerSeconds = article?.readingLockSeconds ?? DEFAULT_TIMER_SECONDS;
   const sessionActive =
     hasReadableArticle && isPageFocused && !loadingArticle && !submittingVote && !pendingSwipe;
@@ -96,20 +103,13 @@ export default function HomePage() {
 
   const syncSession = useCallback(
     async (options: { pageId: number; articleLanguage: AppLanguage; active: boolean }) => {
-      const requiredReadingMs = article?.readingLockSeconds
-        ? article.readingLockSeconds * 1000
-        : null;
-
       try {
         const response = await fetch("/api/session/current-article", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
-          body: JSON.stringify({
-            ...options,
-            requiredReadingMs
-          })
+          body: JSON.stringify(options)
         });
 
         if (!response.ok) {
@@ -122,13 +122,12 @@ export default function HomePage() {
         return null;
       }
     },
-    [article?.readingLockSeconds]
+    []
   );
 
   const sendPauseBeacon = useCallback((
     pageId: number,
-    languageCode: AppLanguage,
-    requiredReadingMs?: number
+    languageCode: AppLanguage
   ): boolean => {
     if (typeof navigator === "undefined" || typeof navigator.sendBeacon !== "function") {
       return false;
@@ -137,8 +136,7 @@ export default function HomePage() {
     const payload = JSON.stringify({
       pageId,
       articleLanguage: languageCode,
-      active: false,
-      requiredReadingMs
+      active: false
     });
 
     const blob = new Blob([payload], { type: "application/json" });
@@ -152,6 +150,7 @@ export default function HomePage() {
       setLoadingArticle(true);
       setMobileInfoOpen(false);
       setError(null);
+      setToastCode(null);
 
       try {
         const params = new URLSearchParams();
@@ -283,8 +282,7 @@ export default function HomePage() {
       window.clearInterval(intervalId);
       const wasSent = sendPauseBeacon(
         article.pageId,
-        articleLanguage,
-        article.readingLockSeconds * 1000
+        articleLanguage
       );
       if (!wasSent) {
         void syncSession({
@@ -329,13 +327,47 @@ export default function HomePage() {
   }, [article, articleLanguage, fetchArticleByPageId, language]);
 
   const canVote =
-    isComplete && !loadingArticle && !submittingVote && !pendingSwipe && Boolean(article);
+    isComplete &&
+    !loadingArticle &&
+    !submittingVote &&
+    !pendingSwipe &&
+    Boolean(article);
+  const votingLocked = !isComplete;
   const isTranslatingCurrentArticle =
     loadingArticle && Boolean(article) && articleLanguage !== null && articleLanguage !== language;
   const preloaderLabel = isTranslatingCurrentArticle
     ? copy.articleTranslating
     : copy.articleLoading;
-  const interactionHint = isComplete ? copy.voteUnlocked : copy.voteLocked;
+  const interactionHint = isAlreadyVoted
+    ? copy.voteAlreadyVotedToast
+    : isComplete
+      ? copy.voteUnlocked
+      : copy.voteLocked;
+
+  useEffect(() => {
+    if (!toastCode) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setToastCode(null);
+    }, 5200);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [toastCode]);
+
+  const skipArticle = useCallback(async () => {
+    if (loadingArticle || submittingVote) return;
+
+    setToastCode(null);
+    setError(null);
+    setPendingSwipe(null);
+    setMobileInfoOpen(false);
+    setArticle(null);
+    setArticleLanguage(null);
+    setReadingElapsedMs(0);
+    await loadArticle(undefined, language);
+  }, [language, loadArticle, loadingArticle, submittingVote]);
 
   const submitVote = useCallback(
     async (direction: SwipeDirection) => {
@@ -379,7 +411,16 @@ export default function HomePage() {
         const voteResponse = await votePromise;
 
         if (!voteResponse.ok) {
-          throw new Error("VOTE_SAVE_FAILED");
+          let errorCode = "VOTE_SAVE_FAILED";
+          const payload = (await voteResponse.json().catch(() => null)) as VoteApiErrorResponse | null;
+
+          if (payload?.errorCode) {
+            errorCode = payload.errorCode;
+          } else if (voteResponse.status === 409) {
+            errorCode = "VOTE_SESSION_EXPIRED";
+          }
+
+          throw new Error(errorCode);
         }
 
         setArticle(null);
@@ -387,7 +428,18 @@ export default function HomePage() {
         setReadingElapsedMs(0);
         setPendingSwipe(null);
         await loadArticle(undefined, language);
-      } catch {
+      } catch (caughtError) {
+        const errorCode = caughtError instanceof Error ? caughtError.message : "VOTE_SAVE_FAILED";
+
+        if (errorCode === "ALREADY_VOTED" || errorCode === "VOTE_SESSION_EXPIRED") {
+          setToastCode(
+            errorCode === "ALREADY_VOTED" ? "ALREADY_VOTED" : "VOTE_SESSION_EXPIRED"
+          );
+          setError(null);
+          setPendingSwipe(null);
+          return;
+        }
+
         setError("VOTE_SAVE_FAILED");
         setPendingSwipe(null);
       } finally {
@@ -417,6 +469,12 @@ export default function HomePage() {
       transition: { duration: 0.34 }
     }
   };
+  const toastMessage =
+    toastCode === "ALREADY_VOTED"
+      ? copy.voteAlreadyVotedToast
+      : toastCode === "VOTE_SESSION_EXPIRED"
+        ? copy.voteSessionExpiredToast
+        : "";
 
   return (
     <div className="mx-auto min-h-screen w-full max-w-6xl px-4 pb-28 pt-6 sm:px-6 sm:pt-8 md:pb-12">
@@ -473,7 +531,7 @@ export default function HomePage() {
               <div className="hidden lg:block">
                 <SideVoteButton
                   direction="left"
-                  locked={!isComplete}
+                  locked={votingLocked}
                   busy={submittingVote || loadingArticle}
                   onClick={() => void submitVote("left")}
                   label={copy.voteNo}
@@ -492,6 +550,7 @@ export default function HomePage() {
                     yes: copy.voteYes,
                     no: copy.voteNo,
                     machineTranslatedBadge: copy.machineTranslatedBadge,
+                    alreadyVotedBadge: copy.alreadyVotedBadge,
                     openWikipedia: copy.openWikipedia,
                     noImage: copy.noImage,
                     articleAriaPrefix: copy.articleCardAriaPrefix
@@ -503,7 +562,7 @@ export default function HomePage() {
               <div className="hidden lg:block">
                 <SideVoteButton
                   direction="right"
-                  locked={!isComplete}
+                  locked={votingLocked}
                   busy={submittingVote || loadingArticle}
                   onClick={() => void submitVote("right")}
                   label={copy.voteYes}
@@ -534,7 +593,7 @@ export default function HomePage() {
             className="rounded-3xl border border-white/15 bg-panel/75 p-4 shadow-soft backdrop-blur sm:p-5 lg:hidden"
           >
             <VoteControls
-              locked={!isComplete}
+              locked={votingLocked}
               busy={submittingVote || loadingArticle}
               onDislike={() => void submitVote("left")}
               onLike={() => void submitVote("right")}
@@ -588,6 +647,31 @@ export default function HomePage() {
               </div>
             </div>
           </motion.section>
+        ) : null}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {toastCode ? (
+          <motion.aside
+            initial={{ opacity: 0, y: -14, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.985 }}
+            transition={{ type: "spring", stiffness: 240, damping: 25 }}
+            role="status"
+            aria-live="polite"
+            className="fixed inset-x-4 top-4 z-50 rounded-2xl border border-amber-300/35 bg-[#0b1e33]/92 p-3 shadow-glow backdrop-blur-xl sm:left-1/2 sm:right-auto sm:w-[420px] sm:-translate-x-1/2"
+          >
+            <p className="text-sm text-amber-50">{toastMessage}</p>
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={() => void skipArticle()}
+                className="rounded-lg border border-brand/35 bg-brand/15 px-3 py-1.5 text-xs font-medium uppercase tracking-[0.14em] text-ink transition hover:bg-brand/25"
+              >
+                {copy.skipArticle}
+              </button>
+            </div>
+          </motion.aside>
         ) : null}
       </AnimatePresence>
 
