@@ -1,7 +1,7 @@
 import { isSupportedLanguage } from "@/lib/i18n";
+import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import {
   getSessionCookieName,
-  READING_LOCK_MS,
   deserializeSessionState,
   serializeSessionState,
   settleSessionState,
@@ -24,7 +24,6 @@ function validateBody(
   pageId: number;
   articleLanguage: SessionState["articleLanguage"];
   active: boolean;
-  requiredReadingMs: number | null;
 } | null {
   if (!body || typeof body !== "object") return null;
 
@@ -32,29 +31,24 @@ function validateBody(
     pageId: number;
     articleLanguage: string;
     active: boolean;
-    requiredReadingMs: number;
   }>;
   const pageId = Number(candidate.pageId);
 
   if (!Number.isFinite(pageId)) return null;
   if (!isSupportedLanguage(candidate.articleLanguage)) return null;
 
-  const requiredReadingRaw = Number(candidate.requiredReadingMs);
-  const requiredReadingMs = Number.isFinite(requiredReadingRaw)
-    ? Math.max(1000, Math.min(180000, Math.floor(requiredReadingRaw)))
-    : null;
-
   return {
     pageId,
     articleLanguage: candidate.articleLanguage,
-    active: candidate.active !== false,
-    requiredReadingMs
+    active: candidate.active !== false
   };
 }
 
 function toResponseState(state: SessionState) {
   return {
-    ...state,
+    pageId: state.pageId,
+    articleLanguage: state.articleLanguage,
+    lastHeartbeatAt: state.lastHeartbeatAt,
     readingElapsedMs: Math.max(0, Math.floor(state.readingElapsedMs)),
     requiredReadingMs: Math.max(1000, Math.floor(state.requiredReadingMs)),
     unlocked: state.readingElapsedMs >= state.requiredReadingMs
@@ -78,6 +72,16 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const rateLimit = checkRateLimit(request, {
+    key: "session-heartbeat",
+    limit: 300,
+    windowMs: 60_000
+  });
+
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds);
+  }
+
   const body = (await request.json().catch(() => null)) as unknown;
   const validBody = validateBody(body);
 
@@ -90,24 +94,26 @@ export async function POST(request: NextRequest) {
   const currentEncryptedState = request.cookies.get(cookieName)?.value;
   const currentState = deserializeSessionState(currentEncryptedState);
 
-  let nextState: SessionState;
-
-  if (currentState && currentState.pageId === validBody.pageId) {
-    const settled = settleSessionState(currentState, { now, keepHeartbeat: false });
-    nextState = {
-      ...settled,
-      articleLanguage: validBody.articleLanguage,
-      lastHeartbeatAt: validBody.active ? now : null
-    };
-  } else {
-    nextState = {
-      pageId: validBody.pageId,
-      articleLanguage: validBody.articleLanguage,
-      readingElapsedMs: 0,
-      requiredReadingMs: READING_LOCK_MS,
-      lastHeartbeatAt: validBody.active ? now : null
-    };
+  if (!currentState) {
+    return NextResponse.json(
+      { error: "No active article session. Fetch an article first." },
+      { status: 409 }
+    );
   }
+
+  if (currentState.pageId !== validBody.pageId) {
+    return NextResponse.json(
+      { error: "Session page mismatch. Reload article first." },
+      { status: 409 }
+    );
+  }
+
+  const settled = settleSessionState(currentState, { now, keepHeartbeat: false });
+  const nextState: SessionState = {
+    ...settled,
+    articleLanguage: validBody.articleLanguage,
+    lastHeartbeatAt: validBody.active ? now : null
+  };
 
   const response = NextResponse.json({ state: toResponseState(nextState) });
   response.cookies.set(cookieName, serializeSessionState(nextState), cookieOptions());

@@ -1,9 +1,13 @@
+import { db } from "@/lib/db";
 import { isSupportedLanguage } from "@/lib/i18n";
+import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import {
   deserializeSessionState,
+  generateVoteNonce,
   getSessionCookieName,
   serializeSessionState,
-  SessionState
+  SessionState,
+  VOTE_NONCE_TTL_MS
 } from "@/lib/session-state";
 import { fetchRandomWikipediaArticle } from "@/lib/wikipedia";
 import { NextRequest, NextResponse } from "next/server";
@@ -29,6 +33,16 @@ function cookieOptions() {
 }
 
 export async function GET(request: NextRequest) {
+  const rateLimit = checkRateLimit(request, {
+    key: "article-random",
+    limit: 90,
+    windowMs: 60_000
+  });
+
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(rateLimit.retryAfterSeconds);
+  }
+
   const exclude = request.nextUrl.searchParams.get("exclude");
   const langParam = request.nextUrl.searchParams.get("lang");
   const language = isSupportedLanguage(langParam) ? langParam : "en";
@@ -46,6 +60,28 @@ export async function GET(request: NextRequest) {
 
     const response = NextResponse.json(article);
 
+    await db.voteNonce.deleteMany({
+      where: {
+        OR: [
+          { expiresAt: { lt: new Date() } },
+          {
+            consumedAt: { not: null },
+            createdAt: { lt: new Date(Date.now() - 1000 * 60 * 60 * 24) }
+          }
+        ]
+      }
+    });
+
+    const voteNonce = generateVoteNonce();
+    const expiresAt = new Date(Date.now() + VOTE_NONCE_TTL_MS);
+    await db.voteNonce.create({
+      data: {
+        nonce: voteNonce,
+        pageId: article.pageId,
+        expiresAt
+      }
+    });
+
     const currentState = deserializeSessionState(
       request.cookies.get(getSessionCookieName())?.value
     );
@@ -55,7 +91,9 @@ export async function GET(request: NextRequest) {
         ? {
             ...currentState,
             articleLanguage: language,
+            readingElapsedMs: 0,
             requiredReadingMs: article.readingLockSeconds * 1000,
+            voteNonce,
             lastHeartbeatAt: null
           }
         : {
@@ -63,6 +101,7 @@ export async function GET(request: NextRequest) {
             articleLanguage: language,
             readingElapsedMs: 0,
             requiredReadingMs: article.readingLockSeconds * 1000,
+            voteNonce,
             lastHeartbeatAt: null
           };
 

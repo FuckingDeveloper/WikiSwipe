@@ -96,20 +96,13 @@ export default function HomePage() {
 
   const syncSession = useCallback(
     async (options: { pageId: number; articleLanguage: AppLanguage; active: boolean }) => {
-      const requiredReadingMs = article?.readingLockSeconds
-        ? article.readingLockSeconds * 1000
-        : null;
-
       try {
         const response = await fetch("/api/session/current-article", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
-          body: JSON.stringify({
-            ...options,
-            requiredReadingMs
-          })
+          body: JSON.stringify(options)
         });
 
         if (!response.ok) {
@@ -122,13 +115,12 @@ export default function HomePage() {
         return null;
       }
     },
-    [article?.readingLockSeconds]
+    []
   );
 
   const sendPauseBeacon = useCallback((
     pageId: number,
-    languageCode: AppLanguage,
-    requiredReadingMs?: number
+    languageCode: AppLanguage
   ): boolean => {
     if (typeof navigator === "undefined" || typeof navigator.sendBeacon !== "function") {
       return false;
@@ -137,8 +129,7 @@ export default function HomePage() {
     const payload = JSON.stringify({
       pageId,
       articleLanguage: languageCode,
-      active: false,
-      requiredReadingMs
+      active: false
     });
 
     const blob = new Blob([payload], { type: "application/json" });
@@ -283,8 +274,7 @@ export default function HomePage() {
       window.clearInterval(intervalId);
       const wasSent = sendPauseBeacon(
         article.pageId,
-        articleLanguage,
-        article.readingLockSeconds * 1000
+        articleLanguage
       );
       if (!wasSent) {
         void syncSession({
