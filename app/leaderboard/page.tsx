@@ -247,7 +247,7 @@ export default function LeaderboardPage() {
   };
 
   return (
-    <div className="mx-auto min-h-screen w-full max-w-6xl px-4 pb-28 pt-6 sm:px-6 sm:pt-8 md:pb-12">
+    <div className="mx-auto min-h-screen w-full max-w-6xl px-4 pb-28 pt-[calc(env(safe-area-inset-top)+1.5rem)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+2rem)] md:pb-12">
       <SiteHeader
         title={copy.leaderboardTitle}
         subtitle={copy.leaderboardSubtitle}

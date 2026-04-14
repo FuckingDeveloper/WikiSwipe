@@ -477,7 +477,7 @@ export default function HomePage() {
         : "";
 
   return (
-    <div className="mx-auto min-h-screen w-full max-w-6xl px-4 pb-28 pt-6 sm:px-6 sm:pt-8 md:pb-12">
+    <div className="mx-auto min-h-screen w-full max-w-6xl px-4 pb-28 pt-[calc(env(safe-area-inset-top)+1.5rem)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+2rem)] md:pb-12">
       <SiteHeader
         title={copy.heroTitle}
         subtitle={copy.homeSubtitle}
@@ -659,7 +659,7 @@ export default function HomePage() {
             transition={{ type: "spring", stiffness: 240, damping: 25 }}
             role="status"
             aria-live="polite"
-            className="fixed inset-x-4 top-4 z-50 rounded-2xl border border-amber-300/35 bg-[#0b1e33]/92 p-3 shadow-glow backdrop-blur-xl sm:left-1/2 sm:right-auto sm:w-[420px] sm:-translate-x-1/2"
+            className="fixed inset-x-4 top-[calc(env(safe-area-inset-top)+1rem)] z-50 rounded-2xl border border-amber-300/35 bg-[#0b1e33]/92 p-3 shadow-glow backdrop-blur-xl sm:left-1/2 sm:right-auto sm:w-[420px] sm:-translate-x-1/2"
           >
             <p className="text-sm text-amber-50">{toastMessage}</p>
             <div className="mt-3 flex justify-end">
