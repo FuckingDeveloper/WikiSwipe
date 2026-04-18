@@ -2,6 +2,8 @@
 
 ![WikiSwipe Preview](./readme_image.jpg)
 
+URL: wikiswipe.mrh.su
+
 **WikiSwipe** is a Tinder-style discovery app for Wikipedia.  
 You get a random article, read it for a **dynamic timer** (based on text length), then vote:
 - left / No
